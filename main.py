@@ -3,8 +3,8 @@ from datetime import datetime
 
 class Field:
     def __init__(self, value):
-        self.__value = None
-        self.value = value
+        self.__value = None                     # 172,173 строки ПРОБЛЕМНІ
+        self.value = value                      # 172,173 строки ПРОБЛЕМНІ
 
     @property
     def value(self):
@@ -18,41 +18,40 @@ class Field:
         return str(self.value)
 
 class Name(Field):
-    def __init__(self, name):
-        super().__init__(name)
+    pass
 
 class Phone(Field):
-    def __init__(self, value):
-        super().__init__(value)
-
-    @Field.value.setter
+    @property
+    def value(self):
+        return self.__value
+ 
+    @value.setter
     def value(self, value):
         if value.isnumeric() and len(value) == 10:
-            self._Field__value = value
+            self.__value = value
         else:
             raise ValueError('Phone is not valid')
         
 class Birthday(Field):
-    def __init__(self, value):
-        super().__init__(value)
+    @property
+    def value(self):
+        return self.__value
 
-    @Field.value.setter
+    @value.setter
     def value(self, value):
         try:
+            print(1)
             datetime.strptime(value, '%Y.%m.%d')
-            return True
         except ValueError:
-            return False
+            print(2)
+            raise ValueError
 
 class Record:
     def __init__(self, name, birthday=None):
         self.name = Name(name)
         self.phones = []
         self.__birthday = None
-        if Birthday(birthday):
-            self.birthday = birthday
-        else:
-            self.birthday = None
+        self.birthday = None
 
     def add_phone(self, phone_number):
         valid_number = Phone(phone_number)
@@ -60,6 +59,13 @@ class Record:
             self.phones.append(valid_number)
         else:
             return 'Phone is not valid'
+        
+    def add_birthday(self, birthday):
+        valid_birthday = Birthday(birthday)
+        if not valid_birthday is None:
+            self.birthday = birthday
+        else:
+            return 'Birthday is not valid'
         
     def remove_phone(self, phone_number):
         phone = self.find_phone(phone_number)
@@ -79,16 +85,14 @@ class Record:
             if ph.value == valid_number.value:
                 return ph
             
-    def days_to_birthday(self,):
-        if isinstance(self.birthday, Birthday):
-            new_day = '2023' + self.birthday[4:]
+    def days_to_birthday(self):
+        new_day = '2023' + self.birthday[4:]
+        birth_day = datetime.strptime(new_day, '%Y.%m.%d')
+        if datetime.strptime(new_day, '%Y.%m.%d') < datetime.now():
+            new_day = '2024' + self.birthday[4:]
             birth_day = datetime.strptime(new_day, '%Y.%m.%d')
-            if datetime.strptime(new_day, '%Y.%m.%d') < datetime.now():
-                new_day = '2024' + self.birthday[4:]
-                birth_day = datetime.strptime(new_day, '%Y.%m.%d')
-            return (birth_day - datetime.now()).days + 1
-        else:
-            raise ValueError('Birthday is not correct')
+        return f'Birthday will be in {(birth_day - datetime.now()).days + 1} days'
+
 
 
     def __str__(self):
@@ -119,3 +123,51 @@ class AddressBook(UserDict):
                 counter = 0
                 result = ''
 
+
+
+   # Створення нової адресної книги
+book = AddressBook()
+
+    # Створення запису для John
+john_record = Record("John", '1991.2.2')
+john_record.add_phone("1234567890")
+john_record.add_phone("5555555555")
+
+    # Додавання запису John до адресної книги
+book.add_record(john_record)
+
+    # Створення та додавання нового запису для Jan
+jane_record = Record("Jane")
+jane_record.add_phone("9876543210")
+book.add_record(jane_record)
+
+    # Виведення всіх записів у книзі
+for name, record in book.data.items():
+    print(record)
+
+    # Знаходження та редагування телефону для John
+john = book.find("John")
+john.edit_phone("1234567890", "1112223333")
+
+print(john)  # Виведення: Contact name: John, phones: 1112223333; 5555555555
+
+    # Пошук конкретного телефону у записі John
+found_phone = john.find_phone("5555555555")
+print(f"{john.name}: {found_phone}")  # Виведення: 5555555555
+
+    # Видалення запису Jane
+
+for name, record in book.data.items():
+    print(next(book.iterator(1)))
+
+john_record.add_birthday('1991.11.1')
+
+for name, record in book.data.items():
+    print(record)
+
+print(john_record.days_to_birthday())
+
+
+#  Проблемні ПИТАННЯ
+john_record.add_phone("55555555551")
+john_record.add_birthday('1991.111.1')
